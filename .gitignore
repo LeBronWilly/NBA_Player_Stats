@@ -1,0 +1,7 @@
+# .gitignore 
+NBA_Team_List.xlsx
+~$NBA_Team_List.xlsx
+NBA_Player_Stats_2.xlsx
+~$NBA_Player_Stats_2.xlsx
+NBA_Player_Stats_2.csv
+~$NBA_Player_Stats_2.csv
