@@ -68,8 +68,8 @@ class AppWindow(QWidget):
         self.ui.setupUi(self)
         print("Loading NBA Player Stats Data......")
         self.Stats_data_source = Data_ETL()
-        self.setup_control()
         print("Done!")
+        self.setup_control()
         self.show()
 
     def setup_control(self):
@@ -77,77 +77,114 @@ class AppWindow(QWidget):
         url = 'https://raw.githubusercontent.com/LeBronWilly/NBA_Player_Stats/main/icon2.png'
         img_data = urllib.request.urlopen(url).read()
         self.ui.WinIcon_img.loadFromData(img_data)
-        self.ui.WinIcon_img = self.ui.WinIcon_img.scaled(75, 75)
+        # self.ui.WinIcon_img = self.ui.WinIcon_img.scaled(75, 75)
         self.setWindowIcon(QIcon(self.ui.WinIcon_img))
+
         self.ui.Icon_img = QPixmap()
-        url = 'https://raw.githubusercontent.com/LeBronWilly/NBA_Player_Stats/main/icon1.png'
+        url = 'https://raw.githubusercontent.com/LeBronWilly/NBA_Player_Stats/main/nba_logo.png'
         img_data = urllib.request.urlopen(url).read()
         self.ui.Icon_img.loadFromData(img_data)
-        self.ui.Icon_img = self.ui.Icon_img.scaled(75, 75)
+        # self.ui.Icon_img = self.ui.Icon_img.scaled(125, 75)
         self.ui.Pic_Label.setPixmap(self.ui.Icon_img)
-        # self.ui.Pic_Label.setPixmap(self.ui.WinIcon_img)
         self.ui.Pic_Label.setAlignment(Qt.AlignCenter)
+        self.ui.Pic_Label.setScaledContents(True)  # 圖片就不會失真
+
         self.ui.Info_Table.clear()
         self.ui.Info_Table.setColumnCount(0)
         self.ui.Info_Table.setRowCount(0)
         # self.ui.Field_Desc_Table.resizeColumnsToContents()
         # self.ui.Field_Desc_Table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.ui.Player_ComboBox.clear()
-        self.ui.Player_ComboBox.addItem("[All Players]")
+        self.ui.Player_ComboBox.addItem("All Players")
         self.ui.player_list = sorted(set(self.Stats_data_source["Player"]))
         for player in self.ui.player_list:
             self.ui.Player_ComboBox.addItem(player)
+
+        self.ui.Team_Filter_ComboBox.clear()
+        self.ui.Team_Filter_ComboBox.addItem("All Teams")
         self.ui.Team_ComboBox.clear()
-        self.ui.Team_ComboBox.addItem("[All Teams]")
+        self.ui.Team_ComboBox.addItem("All Teams")
         self.ui.team_list = sorted(set(self.Stats_data_source["Team"]))
         for team in self.ui.team_list:
             if team != "Two Other Teams":
+                self.ui.Team_Filter_ComboBox.addItem(team)
                 self.ui.Team_ComboBox.addItem(team)
+
+        self.ui.Season_Filter_ComboBox.clear()
+        self.ui.Season_Filter_ComboBox.addItem("All Seasons")
         self.ui.Season_ComboBox.clear()
-        self.ui.Season_ComboBox.addItem("[All Seasons]")
+        self.ui.Season_ComboBox.addItem("All Seasons")
         self.ui.season_list = sorted(set(self.Stats_data_source["Season"]))
         for season in self.ui.season_list:
+            self.ui.Season_Filter_ComboBox.addItem(season)
             self.ui.Season_ComboBox.addItem(season)
+
         self.ui.KeyWord_Text.clear()
         self.ui.Reset_Button.clicked.connect(self.Reset_Button_Clicked)
         self.ui.KeyWord_Text.textChanged.connect(
             lambda: self.Filter_Change(self.ui.KeyWord_Text.text().strip(),
-                                       self.ui.Team_ComboBox.currentText(),
-                                       self.ui.Season_ComboBox.currentText()))
-        self.ui.Team_ComboBox.currentTextChanged.connect(
+                                       self.ui.Team_Filter_ComboBox.currentText(),
+                                       self.ui.Season_Filter_ComboBox.currentText()))
+        self.ui.Team_Filter_ComboBox.currentTextChanged.connect(
             lambda: self.Filter_Change(self.ui.KeyWord_Text.text().strip(),
-                                       self.ui.Team_ComboBox.currentText(),
-                                       self.ui.Season_ComboBox.currentText()))
-        self.ui.Season_ComboBox.currentTextChanged.connect(
+                                       self.ui.Team_Filter_ComboBox.currentText(),
+                                       self.ui.Season_Filter_ComboBox.currentText()))
+        self.ui.Season_Filter_ComboBox.currentTextChanged.connect(
             lambda: self.Filter_Change(self.ui.KeyWord_Text.text().strip(),
-                                       self.ui.Team_ComboBox.currentText(),
-                                       self.ui.Season_ComboBox.currentText()))
+                                       self.ui.Team_Filter_ComboBox.currentText(),
+                                       self.ui.Season_Filter_ComboBox.currentText()))
+
         self.ui.Search_Button.clicked.connect(
-            lambda: self.Search_Button_Clicked(self.ui.Player_ComboBox.currentText()))
+            lambda: self.Search_Button_Clicked(self.ui.Player_ComboBox.currentText(),
+                                               self.ui.Team_ComboBox.currentText(),
+                                               self.ui.Season_ComboBox.currentText()))
+
+        # self.ui.Player_ComboBox.setCurrentText("LeBron James")  # 初始預設LBJ
+        # self.Search_Button_Clicked(self.ui.Player_ComboBox.currentText(),
+        #                            self.ui.Team_ComboBox.currentText(),
+        #                            self.ui.Season_ComboBox.currentText())
 
     def Filter_Change(self, Player_Name_Keyword, Player_Team, Player_Season):
         if Player_Team is None or Player_Season is None:
             return None
-        if Player_Team == "[All Teams]":
+        if Player_Team == "All Teams":
             Player_Team = ""
-        if Player_Season == "[All Seasons]":
+        if Player_Season == "All Seasons":
             Player_Season = ""
 
         self.Stats_data = self.Stats_data_source.copy()
         self.Stats_data = self.Stats_data[self.Stats_data["Team"].str.contains(Player_Team, regex=False)]
         self.Stats_data = self.Stats_data[self.Stats_data["Season"].str.contains(Player_Season, regex=False)]
-        if Player_Name_Keyword != "":
+        if Player_Name_Keyword != "" or Player_Name_Keyword == "":
             self.Stats_data = self.Stats_data[
                 self.Stats_data["Player"].str.contains(Player_Name_Keyword, regex=False, case=False)]
-        elif Player_Name_Keyword == "":
-            pass
         else:
             return None
+
         self.ui.Player_ComboBox.clear()
-        self.ui.Player_ComboBox.addItem("[All Players]")
+        self.ui.Player_ComboBox.addItem("All Players")
         self.ui.player_list = sorted(set(self.Stats_data["Player"]))
         for player in self.ui.player_list:
             self.ui.Player_ComboBox.addItem(player)
+
+        self.Stats_data = self.Stats_data_source.copy()
+        if Player_Name_Keyword != "" or Player_Name_Keyword == "":
+            self.Stats_data = self.Stats_data[
+                self.Stats_data["Player"].str.contains(Player_Name_Keyword, regex=False, case=False)]
+        else:
+            return None
+        self.ui.Team_ComboBox.clear()
+        self.ui.Team_ComboBox.addItem("All Teams")
+        self.ui.team_list = sorted(set(self.Stats_data["Team"]))
+        for team in self.ui.team_list:
+            if team != "Two Other Teams":
+                self.ui.Team_ComboBox.addItem(team)
+
+        self.ui.Season_ComboBox.clear()
+        self.ui.Season_ComboBox.addItem("All Seasons")
+        self.ui.season_list = sorted(set(self.Stats_data["Season"]))
+        for season in self.ui.season_list:
+            self.ui.Season_ComboBox.addItem(season)
 
         # if Region_Name is None:
         #     return None
@@ -171,32 +208,74 @@ class AppWindow(QWidget):
         self.ui.Info_Table.clear()
         self.ui.Info_Table.setColumnCount(0)
         self.ui.Info_Table.setRowCount(0)
+
         self.ui.Player_ComboBox.clear()
-        self.ui.Player_ComboBox.addItem("[All Players]")
+        self.ui.Player_ComboBox.addItem("All Players")
         self.ui.player_list = sorted(set(self.Stats_data_source["Player"]))
         for player in self.ui.player_list:
             self.ui.Player_ComboBox.addItem(player)
+
+        self.ui.Team_Filter_ComboBox.clear()
+        self.ui.Team_Filter_ComboBox.addItem("All Teams")
         self.ui.Team_ComboBox.clear()
-        self.ui.Team_ComboBox.addItem("[All Teams]")
+        self.ui.Team_ComboBox.addItem("All Teams")
         self.ui.team_list = sorted(set(self.Stats_data_source["Team"]))
         for team in self.ui.team_list:
             if team != "Two Other Teams":
+                self.ui.Team_Filter_ComboBox.addItem(team)
                 self.ui.Team_ComboBox.addItem(team)
+
+        self.ui.Season_Filter_ComboBox.clear()
+        self.ui.Season_Filter_ComboBox.addItem("All Seasons")
         self.ui.Season_ComboBox.clear()
-        self.ui.Season_ComboBox.addItem("[All Seasons]")
+        self.ui.Season_ComboBox.addItem("All Seasons")
         self.ui.season_list = sorted(set(self.Stats_data_source["Season"]))
         for season in self.ui.season_list:
+            self.ui.Season_Filter_ComboBox.addItem(season)
             self.ui.Season_ComboBox.addItem(season)
+
         self.ui.KeyWord_Text.clear()
+        self.ui.BHOF_Label.clear()
+        self.ui.MVP_Label.clear()
         print("Done!")
 
-    def Search_Button_Clicked(self, PlayerName):
-        if PlayerName is None or PlayerName == "[All Players]":
-            print("Please Choose Player!")
-            return
+    def Search_Button_Clicked(self, PlayerName, TeamName, SeasonName):
+        # if PlayerName is None or PlayerName == "[All Players]":
+        #     print("Please Choose Player!")
+        #     return
+        PlayerName_tmp, TeamName_tmp, SeasonName_tmp = PlayerName, TeamName, SeasonName
+        if TeamName is None or SeasonName is None:
+            return None
+        if PlayerName == "All Players":
+            PlayerName_tmp = ""
+        if TeamName == "All Teams":
+            TeamName_tmp = ""
+        if SeasonName == "All Seasons":
+            SeasonName_tmp = ""
         self.ui.Info_Table.clear()
         df_table = self.Stats_data_source.copy()
-        df_table = df_table[(df_table["Player"] == PlayerName)]
+        df_table = df_table[df_table["Team"].str.contains(TeamName_tmp, regex=False)]
+        df_table = df_table[df_table["Season"].str.contains(SeasonName_tmp, regex=False)]
+        df_table = df_table[df_table["Player"].str.contains(PlayerName_tmp, regex=False)]
+        # df_table = df_table[(df_table["Player"] == PlayerName)]
+
+        if PlayerName != "All Players":
+            if sum(df_table["BHOF"]) > 0:
+                BHOF_RMK = "Yes"
+            else:
+                BHOF_RMK = "No"
+            MVP_Season_List = sorted(df_table[df_table["Season_MVP"] == True]["Season"])
+            if len(MVP_Season_List) > 0:
+                MVP_Season_RMK = ", ".join(MVP_Season_List)
+            else:
+                MVP_Season_RMK = "None"
+            self.ui.BHOF_Label.setText(BHOF_RMK)
+            self.ui.MVP_Label.setText(MVP_Season_RMK)
+        else:
+            self.ui.BHOF_Label.clear()
+            self.ui.MVP_Label.clear()
+
+        df_table.drop(columns=['Season_MVP', 'BHOF', 'Tm'], inplace=True)
         df_table_nrows = df_table.shape[0]
         df_table_ncolumns = df_table.shape[1]
         df_table_columns_names = df_table.columns
@@ -212,7 +291,7 @@ class AppWindow(QWidget):
                 new_item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                 self.ui.Info_Table.setItem(i, j, new_item)
                 self.ui.Info_Table.horizontalHeader().setSectionResizeMode(j, QHeaderView.ResizeToContents)
-        print(PlayerName)
+        print(PlayerName, TeamName, SeasonName)
 
 
 if __name__ == "__main__":
