@@ -58,6 +58,11 @@ def Data_ETL():
     nba_player_df.insert(5, 'Season_MVP', nba_player_df.pop('MVP'))
     nba_player_df.insert(6, 'BHOF', nba_player_df.pop('BHOF'))
     nba_player_df.insert(len(nba_player_df.columns) - 1, 'Tm', nba_player_df.pop('Tm'))
+    nba_player_df["FG%"] = nba_player_df["FG%"].apply(lambda x: str(round(x * 100, 1)) + "%")
+    nba_player_df["3P%"] = nba_player_df["3P%"].apply(lambda x: str(round(x * 100, 1)) + "%")
+    nba_player_df["2P%"] = nba_player_df["2P%"].apply(lambda x: str(round(x * 100, 1)) + "%")
+    nba_player_df["eFG%"] = nba_player_df["eFG%"].apply(lambda x: str(round(x * 100, 1)) + "%")
+    nba_player_df["FT%"] = nba_player_df["FT%"].apply(lambda x: str(round(x * 100, 1)) + "%")
     return nba_player_df
 
 
@@ -133,7 +138,8 @@ class AppWindow(QWidget):
             lambda: self.Filter_Change(self.ui.KeyWord_Text.text().strip(),
                                        self.ui.Team_Filter_ComboBox.currentText(),
                                        self.ui.Season_Filter_ComboBox.currentText()))
-
+        self.ui.Player_ComboBox.currentTextChanged.connect(
+            lambda: self.Player_Change(self.ui.Player_ComboBox.currentText()))
         self.ui.Search_Button.clicked.connect(
             lambda: self.Search_Button_Clicked(self.ui.Player_ComboBox.currentText(),
                                                self.ui.Team_ComboBox.currentText(),
@@ -145,46 +151,32 @@ class AppWindow(QWidget):
         #                            self.ui.Season_ComboBox.currentText())
 
     def Filter_Change(self, Player_Name_Keyword, Player_Team, Player_Season):
+        Player_Team_tmp = Player_Team
+        Player_Season_tmp = Player_Season
         if Player_Team is None or Player_Season is None:
             return None
         if Player_Team == "All Teams":
-            Player_Team = ""
+            Player_Team_tmp = ""
         if Player_Season == "All Seasons":
-            Player_Season = ""
-
-        self.Stats_data = self.Stats_data_source.copy()
-        self.Stats_data = self.Stats_data[self.Stats_data["Team"].str.contains(Player_Team, regex=False)]
-        self.Stats_data = self.Stats_data[self.Stats_data["Season"].str.contains(Player_Season, regex=False)]
-        if Player_Name_Keyword != "" or Player_Name_Keyword == "":
-            self.Stats_data = self.Stats_data[
-                self.Stats_data["Player"].str.contains(Player_Name_Keyword, regex=False, case=False)]
-        else:
-            return None
+            Player_Season_tmp = ""
+        # print(Player_Name_Keyword is None)
+        # print(Player_Name_Keyword, Player_Team_tmp, Player_Season_tmp)
+        Stats_data_tmp = self.Stats_data_source.copy()
+        Stats_data_tmp = Stats_data_tmp[Stats_data_tmp["Team"].str.contains(Player_Team_tmp, regex=False)]
+        Stats_data_tmp = Stats_data_tmp[Stats_data_tmp["Season"].str.contains(Player_Season_tmp, regex=False)]
+        Stats_data_tmp = Stats_data_tmp[
+            Stats_data_tmp["Player"].str.contains(Player_Name_Keyword, regex=False, case=False)]
+        # if Player_Name_Keyword != "" or Player_Name_Keyword == "":
+        #     Stats_data_tmp = Stats_data_tmp[
+        #         Stats_data_tmp["Player"].str.contains(Player_Name_Keyword, regex=False, case=False)]
+        # else:
+        #     return None
 
         self.ui.Player_ComboBox.clear()
         self.ui.Player_ComboBox.addItem("All Players")
-        self.ui.player_list = sorted(set(self.Stats_data["Player"]))
+        self.ui.player_list = sorted(set(Stats_data_tmp["Player"]))
         for player in self.ui.player_list:
             self.ui.Player_ComboBox.addItem(player)
-
-        self.Stats_data = self.Stats_data_source.copy()
-        if Player_Name_Keyword != "" or Player_Name_Keyword == "":
-            self.Stats_data = self.Stats_data[
-                self.Stats_data["Player"].str.contains(Player_Name_Keyword, regex=False, case=False)]
-        else:
-            return None
-        self.ui.Team_ComboBox.clear()
-        self.ui.Team_ComboBox.addItem("All Teams")
-        self.ui.team_list = sorted(set(self.Stats_data["Team"]))
-        for team in self.ui.team_list:
-            if team != "Two Other Teams":
-                self.ui.Team_ComboBox.addItem(team)
-
-        self.ui.Season_ComboBox.clear()
-        self.ui.Season_ComboBox.addItem("All Seasons")
-        self.ui.season_list = sorted(set(self.Stats_data["Season"]))
-        for season in self.ui.season_list:
-            self.ui.Season_ComboBox.addItem(season)
 
         # if Region_Name is None:
         #     return None
@@ -202,6 +194,90 @@ class AppWindow(QWidget):
         #     self.ui.loc_list = sorted(set(df_table["Location"]))
         #     for loc in self.ui.loc_list:
         #         self.ui.Location_ComboBox.addItem(loc)
+
+    def Player_Change(self, PlayerName):
+        PlayerName_tmp = PlayerName
+        if PlayerName is None:
+            return None
+        if PlayerName == "All Players":
+            PlayerName_tmp = ""
+
+        Stats_data_tmp = self.Stats_data_source.copy()
+        if PlayerName_tmp != "" or PlayerName_tmp == "":
+            Stats_data_tmp = Stats_data_tmp[
+                Stats_data_tmp["Player"].str.contains(PlayerName_tmp, regex=False, case=False)]
+        else:
+            return None
+
+        self.ui.Team_ComboBox.clear()
+        self.ui.Team_ComboBox.addItem("All Teams")
+        self.ui.team_list = sorted(set(Stats_data_tmp["Team"]))
+        for team in self.ui.team_list:
+            if team != "Two Other Teams":
+                self.ui.Team_ComboBox.addItem(team)
+
+        self.ui.Season_ComboBox.clear()
+        self.ui.Season_ComboBox.addItem("All Seasons")
+        self.ui.season_list = sorted(set(Stats_data_tmp["Season"]))
+        for season in self.ui.season_list:
+            self.ui.Season_ComboBox.addItem(season)
+
+    def Search_Button_Clicked(self, PlayerName, TeamName, SeasonName):
+        # if PlayerName is None or PlayerName == "[All Players]":
+        #     print("Please Choose Player!")
+        #     return
+        PlayerName_tmp, TeamName_tmp, SeasonName_tmp = PlayerName, TeamName, SeasonName
+        if TeamName is None or SeasonName is None:
+            return None
+        if PlayerName == "All Players":
+            PlayerName_tmp = ""
+        if TeamName == "All Teams":
+            TeamName_tmp = ""
+        if SeasonName == "All Seasons":
+            SeasonName_tmp = ""
+        self.ui.Info_Table.clear()
+        df_table = self.Stats_data_source.copy()
+        df_table = df_table[df_table["Team"].str.contains(TeamName_tmp, regex=False)]
+        df_table = df_table[df_table["Season"].str.contains(SeasonName_tmp, regex=False)]
+        df_table = df_table[df_table["Player"].str.contains(PlayerName_tmp, regex=False)]
+        # df_table = df_table[(df_table["Player"] == PlayerName)]
+
+        if PlayerName != "All Players":
+            if sum(df_table["BHOF"]) > 0:
+                BHOF_RMK = "Yes"
+            else:
+                BHOF_RMK = "No"
+            MVP_Season_List = sorted(df_table[df_table["Season_MVP"] == True]["Season"])
+            if len(MVP_Season_List) > 0:
+                MVP_Season_RMK = ", ".join(MVP_Season_List)
+            else:
+                MVP_Season_RMK = "None"
+            self.ui.BHOF_Label.setText(BHOF_RMK)
+            self.ui.MVP_Label.setText(MVP_Season_RMK)
+        else:
+            self.ui.BHOF_Label.setText("Not Applicable")
+            self.ui.MVP_Label.setText("Not Applicable")
+
+        df_table.drop(columns=['Season_MVP', 'BHOF', 'Tm'], inplace=True)
+        df_table_nrows = df_table.shape[0]
+        df_table_ncolumns = df_table.shape[1]
+        df_table_columns_names = df_table.columns
+        self.ui.Info_Table.setColumnCount(df_table_ncolumns)
+        self.ui.Info_Table.setRowCount(df_table_nrows)
+        self.ui.Info_Table.setHorizontalHeaderLabels(df_table_columns_names)
+        for i in range(0, df_table_nrows):
+            df_table_row_values_list = list(df_table.iloc[i])
+            self.ui.Info_Table.setRowHeight(i, 1)
+            for j in range(0, df_table_ncolumns):
+                df_table_values_item = str(df_table_row_values_list[j])
+                new_item = QTableWidgetItem(df_table_values_item)
+                new_item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.ui.Info_Table.setItem(i, j, new_item)
+                self.ui.Info_Table.horizontalHeader().setSectionResizeMode(j, QHeaderView.ResizeToContents)
+        print("Searching:", "[" + PlayerName + "]", "played with", "[" + TeamName + "]", "in", "[" + SeasonName + "]")
+        if len(df_table) == 0:
+            print("No Results!")
+            print()
 
     def Reset_Button_Clicked(self):
         print("Resetting......")
@@ -238,60 +314,6 @@ class AppWindow(QWidget):
         self.ui.BHOF_Label.clear()
         self.ui.MVP_Label.clear()
         print("Done!")
-
-    def Search_Button_Clicked(self, PlayerName, TeamName, SeasonName):
-        # if PlayerName is None or PlayerName == "[All Players]":
-        #     print("Please Choose Player!")
-        #     return
-        PlayerName_tmp, TeamName_tmp, SeasonName_tmp = PlayerName, TeamName, SeasonName
-        if TeamName is None or SeasonName is None:
-            return None
-        if PlayerName == "All Players":
-            PlayerName_tmp = ""
-        if TeamName == "All Teams":
-            TeamName_tmp = ""
-        if SeasonName == "All Seasons":
-            SeasonName_tmp = ""
-        self.ui.Info_Table.clear()
-        df_table = self.Stats_data_source.copy()
-        df_table = df_table[df_table["Team"].str.contains(TeamName_tmp, regex=False)]
-        df_table = df_table[df_table["Season"].str.contains(SeasonName_tmp, regex=False)]
-        df_table = df_table[df_table["Player"].str.contains(PlayerName_tmp, regex=False)]
-        # df_table = df_table[(df_table["Player"] == PlayerName)]
-
-        if PlayerName != "All Players":
-            if sum(df_table["BHOF"]) > 0:
-                BHOF_RMK = "Yes"
-            else:
-                BHOF_RMK = "No"
-            MVP_Season_List = sorted(df_table[df_table["Season_MVP"] == True]["Season"])
-            if len(MVP_Season_List) > 0:
-                MVP_Season_RMK = ", ".join(MVP_Season_List)
-            else:
-                MVP_Season_RMK = "None"
-            self.ui.BHOF_Label.setText(BHOF_RMK)
-            self.ui.MVP_Label.setText(MVP_Season_RMK)
-        else:
-            self.ui.BHOF_Label.clear()
-            self.ui.MVP_Label.clear()
-
-        df_table.drop(columns=['Season_MVP', 'BHOF', 'Tm'], inplace=True)
-        df_table_nrows = df_table.shape[0]
-        df_table_ncolumns = df_table.shape[1]
-        df_table_columns_names = df_table.columns
-        self.ui.Info_Table.setColumnCount(df_table_ncolumns)
-        self.ui.Info_Table.setRowCount(df_table_nrows)
-        self.ui.Info_Table.setHorizontalHeaderLabels(df_table_columns_names)
-        for i in range(0, df_table_nrows):
-            df_table_row_values_list = list(df_table.iloc[i])
-            self.ui.Info_Table.setRowHeight(i, 1)
-            for j in range(0, df_table_ncolumns):
-                df_table_values_item = str(df_table_row_values_list[j])
-                new_item = QTableWidgetItem(df_table_values_item)
-                new_item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-                self.ui.Info_Table.setItem(i, j, new_item)
-                self.ui.Info_Table.horizontalHeader().setSectionResizeMode(j, QHeaderView.ResizeToContents)
-        print(PlayerName, TeamName, SeasonName)
 
 
 if __name__ == "__main__":
