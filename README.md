@@ -2,8 +2,12 @@
  NBA Player Traditional Statistics (from 1996-97 to 2022-23)
 
 
-1. <a href="https://www.nba.com/" title="NBA Official">NBA Logo created by NBA</a>
+1. <a href="https://www.nba.com" title="NBA Official">NBA Logo created by NBA</a>
 2. <a href="https://www.flaticon.com/free-icons/nba" title="Basketball Icon">Basketball Icons created by amoghdesign - Flaticon</a>
+3. <a href="https://data.world/etocco/nba-player-stats" title="NBA Player Statistics Data1">NBA Player Statistics Data sourced from Eduardo Tocco - The Data Catalog Platform | data.world</a>
+4. <a href="https://www.basketball-reference.com" title="NBA Player Statistics Data2">NBA Player Statistics Data sourced from Basketball Reference</a>
+
+
 
 <br>
 
