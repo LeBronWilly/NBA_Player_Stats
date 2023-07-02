@@ -66,11 +66,23 @@ def Data_ETL():
     return nba_player_df
 
 
+# from PySide2 import QtWebEngineWidgets
+# import plotly.express as px
+
+
 class AppWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.ui = Ui_NBA_Player_Stats()
         self.ui.setupUi(self)
+        ######
+        # self.browser = QtWebEngineWidgets.QWebEngineView(self)
+        # self.browser.setGeometry(QRect(30, 330, 1221, 361))
+        # df = px.data.tips()
+        # fig = px.box(df, x="day", y="total_bill", color="smoker")
+        # fig.update_traces(quartilemethod="exclusive")  # or "inclusive", or "linear" by default
+        # self.browser.setHtml(fig.to_html(include_plotlyjs='cdn'))
+        ######
         print("Loading NBA Player Stats Data......")
         self.Stats_data_source = Data_ETL()
         print("Done!")
