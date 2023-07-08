@@ -9,11 +9,18 @@ Created on 05/13, 2023
 # https://www.statscrew.com/basketball/t-WSB
 # https://stackoverflow.com/questions/60522103/how-to-have-plotly-graph-as-pyqt5-widget
 # https://stackoverflow.com/questions/52485735/how-do-i-display-a-border-around-a-qwebengineview
+# https://plotly.com/python/line-and-scatter/
+# https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
+# https://chat.openai.com/chat
 
 
 from UI_V02 import *
 import pandas as pd
 import urllib.request
+from PySide2 import QtWebEngineWidgets
+import plotly.graph_objects as go
+# import plotly.io as pio
+pd.options.mode.chained_assignment = None
 
 
 # import json
@@ -65,12 +72,22 @@ def Data_ETL():
     nba_player_df["2P%"] = nba_player_df["2P%"].apply(lambda x: str(round(x * 100, 1)) + "%")
     nba_player_df["eFG%"] = nba_player_df["eFG%"].apply(lambda x: str(round(x * 100, 1)) + "%")
     nba_player_df["FT%"] = nba_player_df["FT%"].apply(lambda x: str(round(x * 100, 1)) + "%")
-    nba_player_df["Year"] = nba_player_df["Season"].apply(lambda x: int(x[:4]))
+    nba_player_df["Year"] = nba_player_df["Season"].apply(lambda x: int(x[:4]) + 1)
     return nba_player_df
 
 
-from PySide2 import QtWebEngineWidgets
-import plotly.express as px
+def data_for_graph(df):
+    TOT_list = list(df.loc[df["Team"] == "Two Other Teams", "Age"])
+    df["Flag"] = "O"
+    df.loc[(df["Team"] == "Two Other Teams") & (df["Age"].isin(TOT_list)), "Flag"] = "O"
+    df.loc[(df["Team"] != "Two Other Teams") & (df["Age"].isin(TOT_list)), "Flag"] = ""
+    df = df[df["Flag"] != ""]
+    df["FG%"] = df["FG%"].apply(lambda x: float(x[:-1]))
+    df["3P%"] = df["3P%"].apply(lambda x: float(x[:-1]))
+    df["2P%"] = df["2P%"].apply(lambda x: float(x[:-1]))
+    df["eFG%"] = df["eFG%"].apply(lambda x: float(x[:-1]))
+    df["FT%"] = df["FT%"].apply(lambda x: float(x[:-1]))
+    return df
 
 
 class AppWindow(QWidget):
@@ -78,22 +95,58 @@ class AppWindow(QWidget):
         super().__init__()
         self.ui = Ui_NBA_Player_Stats()
         self.ui.setupUi(self)
-        ######
         self.Chart_Plotly = QtWebEngineWidgets.QWebEngineView(self)
         self.Chart_Plotly.setGeometry(QRect(30, 565, 1221, 351))
         self.Chart_Plotly.setContentsMargins(1, 1, 1, 1)
-        df = px.data.tips()
-        fig = px.box(df, x="day", y="total_bill", color="smoker")
-        fig.update_traces(quartilemethod="exclusive")  # or "inclusive", or "linear" by default
-        df = pd.DataFrame(dict(
-            x=[1, 2, 3, 4, 5],
-            y=[1, 2, None, 4, 6],
-        ))
-        df = df.sort_values(by="x")
-        fig = px.line(df, x="x", y="y", title="Unsorted Input")
-        fig.update_traces(connectgaps=True)
-        self.Chart_Plotly.setHtml(fig.to_html(include_plotlyjs='cdn'))
+
         ######
+        # df = px.data.tips()
+        # fig = px.box(df, x="day", y="total_bill", color="smoker")
+        # fig.update_traces(quartilemethod="exclusive")  # or "inclusive", or "linear" by default
+        # df = pd.DataFrame(dict(
+        #     x=[1, 2, 3, 4, 5],
+        #     y=[1, 2, None, 4, 6],
+        # ))
+        # df = df.sort_values(by="x")
+        # fig = px.line(df, x="x", y="y", title="Unsorted Input")
+        # fig.update_traces(connectgaps=True)
+        # Sample DataFrame
+        ######
+
+        ########
+        # df = pd.DataFrame({'x': [1, 2, 3, 4, 5],
+        #                    'y1': [10, 8, 6, 4, 2],
+        #                    'y2': [3, 6, 9, 12, 15],
+        #                    'y3': [1, 4, 7, 10, 13]})
+        # fig = go.Figure()
+        # for column in df.columns[1:]:
+        #     fig.add_trace(go.Scatter(
+        #         x=df['x'],
+        #         y=df[column],
+        #         mode='lines+markers',
+        #         name=column,
+        #         visible=True,
+        #         text=df[column].map('{:.2f}'.format),  # Set the text attribute as the formatted values for each line
+        #         hoverinfo='text',  # Enable hoverinfo display
+        #         line=dict(
+        #             shape='spline'  # Set the line shape to 'spline' for curves
+        #         )
+        #     ))
+        #     fig.update_layout(
+        #         title='Line Chart with Value Labels',
+        #         xaxis_title='X',
+        #         yaxis_title='Y',
+        #         xaxis=dict(
+        #             dtick=1  # Set x-axis tick frequency to 1
+        #         )
+        #     )
+        # fig.update_layout(
+        #     margin=dict(l=0, r=0, t=25, b=0),
+        # )
+        # self.Chart_Plotly.setHtml(fig.to_html(include_plotlyjs='cdn', full_html=True,
+        #                                       default_width="100%", default_height="100%"))
+        ########
+
         print("Loading NBA Player Stats Data......")
         self.Stats_data_source = Data_ETL()
         print("Done!")
@@ -117,6 +170,7 @@ class AppWindow(QWidget):
         self.ui.Pic_Label.setAlignment(Qt.AlignCenter)
         self.ui.Pic_Label.setScaledContents(True)  # 圖片就不會失真
 
+        self.Chart_Plotly.setHtml("")
         self.ui.Info_Table.clear()
         self.ui.Info_Table.setColumnCount(0)
         self.ui.Info_Table.setRowCount(0)
@@ -266,6 +320,7 @@ class AppWindow(QWidget):
         # df_table = df_table[(df_table["Player"] == PlayerName)]
 
         if PlayerName != "All Players":
+            self.Graph_Show(["PTS", "TRB", "AST", "STL", "BLK"], df_table.copy())
             if sum(df_table["BHOF"]) > 0:
                 BHOF_RMK = "Yes"
             else:
@@ -280,6 +335,7 @@ class AppWindow(QWidget):
         else:
             self.ui.BHOF_Label.setText("Not Applicable")
             self.ui.MVP_Label.setText("Not Applicable")
+            self.Chart_Plotly.setHtml("")
 
         df_table.drop(columns=['Season_MVP', 'BHOF', 'Tm'], inplace=True)
         df_table_nrows = df_table.shape[0]
@@ -302,8 +358,32 @@ class AppWindow(QWidget):
             print("No Results!")
             print()
 
+    def Graph_Show(self, col_list, df_player):
+        df = data_for_graph(df_player)
+        fig = go.Figure()
+        for col in col_list:
+            fig.add_trace(
+                go.Scatter(x=df["Year"], y=df[col], name=col, visible=True, mode="lines+markers+text", text=df[col],
+                           textposition="top center", marker=dict(size=10, symbol="square"),
+                           line=dict(shape='spline'), texttemplate='%{text:.1f}'))
+        fig.update_layout(title="NBA Player Statistical Graph", xaxis_title="Year",  # yaxis_title="Value",
+                          xaxis=dict(dtick=1, range=[df["Year"].min() - 0.5, df["Year"].max() + 0.5]))
+        fig.update_layout(
+            margin=dict(l=0, r=0, t=25, b=0),
+        )
+        self.Chart_Plotly.setHtml(fig.to_html(include_plotlyjs='cdn', full_html=True,
+                                              default_width="100%", default_height="100%"))
+        # pio.write_image(fig, 'figure.png')
+
     def Reset_Button_Clicked(self):
+        # screenshot = self.Chart_Plotly.grab()
+        # file_path = "screenshot.png"
+        # if screenshot.save(file_path):
+        #     print("Image saved successfully.")
+        # else:
+        #     print("Failed to save the image.")
         print("Resetting......")
+        self.Chart_Plotly.setHtml("")
         self.ui.Info_Table.clear()
         self.ui.Info_Table.setColumnCount(0)
         self.ui.Info_Table.setRowCount(0)
