@@ -19,6 +19,7 @@ import pandas as pd
 import urllib.request
 from PySide2 import QtWebEngineWidgets
 import plotly.graph_objects as go
+
 # import plotly.io as pio
 pd.options.mode.chained_assignment = None
 
@@ -53,10 +54,14 @@ def Data_ETL():
     stats_append_2022_23["MVP"] = False
     stats_append_2022_23.loc[stats_append_2022_23["Player"].str.contains("Joel Embiid", regex=False), "MVP"] = True
 
+    stats_append_MissingData = pd.read_csv(
+        'https://raw.githubusercontent.com/LeBronWilly/NBA_Player_Stats/main/Fillup_Stats_Append.txt').fillna(0.000)
+
     nba_team_list = pd.read_csv(
         'https://raw.githubusercontent.com/LeBronWilly/NBA_Player_Stats/main/NBA_Team_List.csv').fillna(0.000)
     nba_player_df = pd.read_csv('https://query.data.world/s/ty4piswbrsp54noyh2bdvrjecv24ta?dws=00000').fillna(0.000)
-    nba_player_df = pd.concat([nba_player_df, stats_append_1996_97, stats_append_2022_23], ignore_index=True)
+    nba_player_df = pd.concat([nba_player_df, stats_append_1996_97, stats_append_MissingData, stats_append_2022_23],
+                              ignore_index=True)
     nba_player_df["BHOF"] = False
     nba_player_df.loc[nba_player_df["Player"].str.contains("*", regex=False), "BHOF"] = True
     nba_player_df["Player"] = nba_player_df["Player"].str.strip("*")
@@ -96,7 +101,7 @@ class AppWindow(QWidget):
         self.ui = Ui_NBA_Player_Stats()
         self.ui.setupUi(self)
         self.Chart_Plotly = QtWebEngineWidgets.QWebEngineView(self)
-        self.Chart_Plotly.setGeometry(QRect(30, 565, 1221, 351))
+        self.Chart_Plotly.setGeometry(QRect(30, 560, 1221, 361))
         self.Chart_Plotly.setContentsMargins(1, 1, 1, 1)
 
         ######
@@ -316,11 +321,19 @@ class AppWindow(QWidget):
         df_table = self.Stats_data_source.copy()
         df_table = df_table[df_table["Team"].str.contains(TeamName_tmp, regex=False)]
         df_table = df_table[df_table["Season"].str.contains(SeasonName_tmp, regex=False)]
-        df_table = df_table[df_table["Player"].str.contains(PlayerName_tmp, regex=False)]
-        # df_table = df_table[(df_table["Player"] == PlayerName)]
+        # df_table = df_table[df_table["Player"].str.contains(PlayerName_tmp, regex=False)]
+        if PlayerName_tmp in ["Carmelo Anthony", ""]:  # Extra Handling for Melo......
+            df_table = df_table[(df_table["Player"] == PlayerName_tmp)].sort_values(by=['Player', 'Season', 'G'], ascending=[True, True, False]).reset_index(drop=True)
+        else:
+            df_table = df_table[(df_table["Player"] == PlayerName_tmp)]
 
         if PlayerName != "All Players":
-            self.Graph_Show(["PTS", "TRB", "AST", "STL", "BLK"], df_table.copy())
+            if self.ui.Graph_Data_Type.currentText() == "Basic 5 Stats Data":
+                self.Graph_Show(["PTS", "TRB", "AST", "STL", "BLK"], df_table.copy())
+            elif self.ui.Graph_Data_Type.currentText() == "Field Goal Percentage":
+                self.Graph_Show(["FG%", "2P%", "3P%", "FT%", "eFG%"], df_table.copy())
+            else:
+                pass
             if sum(df_table["BHOF"]) > 0:
                 BHOF_RMK = "Yes"
             else:
@@ -356,7 +369,7 @@ class AppWindow(QWidget):
         print("Searching:", "[" + PlayerName + "]", "played with", "[" + TeamName + "]", "in", "[" + SeasonName + "]")
         if len(df_table) == 0:
             print("No Results!")
-            print()
+        print()
 
     def Graph_Show(self, col_list, df_player):
         df = data_for_graph(df_player)
@@ -373,6 +386,7 @@ class AppWindow(QWidget):
         )
         self.Chart_Plotly.setHtml(fig.to_html(include_plotlyjs='cdn', full_html=True,
                                               default_width="100%", default_height="100%"))
+        print("Graphing:", col_list)
         # pio.write_image(fig, 'figure.png')
 
     def Reset_Button_Clicked(self):
