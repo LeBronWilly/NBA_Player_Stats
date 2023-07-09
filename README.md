@@ -11,15 +11,12 @@
 
 <br>
 
-User Tutorial: <br>
-<img src="https://github.com/LeBronWilly/NBA_Player_Stats/assets/38752414/48f2cf17-7faf-4223-a619-559bbcdc29c2">
-
-<br>
-
 User Interface: (Examples)<br>
-<img src="https://github.com/LeBronWilly/NBA_Player_Stats/assets/38752414/9d519f70-77f2-4733-9377-3191cc5a6087">
-<img src="https://github.com/LeBronWilly/NBA_Player_Stats/assets/38752414/5f1f3ef4-e0e5-4d3d-a5bd-d5fba7cfdfae">
-<img src="https://github.com/LeBronWilly/NBA_Player_Stats/assets/38752414/51bd02c0-5355-42cd-b692-083b63f42b7a">
+<img src="https://github.com/LeBronWilly/NBA_Player_Stats/assets/38752414/16f8791f-3761-4797-b494-b8218222bd24">
+<img src="https://github.com/LeBronWilly/NBA_Player_Stats/assets/38752414/f4bdde49-d944-4f11-8ede-cce06c5747e1">
+<img src="https://github.com/LeBronWilly/NBA_Player_Stats/assets/38752414/5fb2eda9-2cd9-4493-b391-5146880e7194">
+<img src="https://github.com/LeBronWilly/NBA_Player_Stats/assets/38752414/913c4c1e-6fdf-4da3-9ee2-4fadd8cc45b7">
+
 
 
 
