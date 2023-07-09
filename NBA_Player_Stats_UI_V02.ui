@@ -550,7 +550,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Season He Played in:</string>
+    <string>Season Played in:</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignJustify|Qt::AlignVCenter</set>
@@ -574,7 +574,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Team He Played with:</string>
+    <string>Team Played with:</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignJustify|Qt::AlignVCenter</set>

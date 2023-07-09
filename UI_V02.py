@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'NBA_Player_Stats_UI_V02cjlXDf.ui'
+## Form generated from reading UI file 'NBA_Player_Stats_UI_V02wrjVlx.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.15.2
 ##
@@ -248,8 +248,8 @@ class Ui_NBA_Player_Stats(object):
         self.label_7.setText(QCoreApplication.translate("NBA_Player_Stats", u"MVP:", None))
         self.BHOF_Label.setText("")
         self.MVP_Label.setText("")
-        self.List_Label_4.setText(QCoreApplication.translate("NBA_Player_Stats", u"Season He Played in:", None))
-        self.List_Label_5.setText(QCoreApplication.translate("NBA_Player_Stats", u"Team He Played with:", None))
+        self.List_Label_4.setText(QCoreApplication.translate("NBA_Player_Stats", u"Season Played in:", None))
+        self.List_Label_5.setText(QCoreApplication.translate("NBA_Player_Stats", u"Team Played with:", None))
         self.Season_ComboBox.setItemText(0, QCoreApplication.translate("NBA_Player_Stats", u"All Seasons", None))
 
         self.Season_ComboBox.setCurrentText(QCoreApplication.translate("NBA_Player_Stats", u"All Seasons", None))
