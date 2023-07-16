@@ -7,3 +7,6 @@ NBA_Player_Stats_2.csv
 ~$NBA_Player_Stats_2.csv
 nba_player_df.xlsx
 ~$nba_player_df.xlsx
+dist/
+build/
+
